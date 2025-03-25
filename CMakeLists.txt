@@ -8,6 +8,8 @@ pkg_check_modules(OPENCV REQUIRED opencv4)
 
 find_package(realsense2 REQUIRED)
 
+
+
 add_executable(realsense src/realsense.cpp)
 
 target_include_directories(realsense PRIVATE 
@@ -27,4 +29,20 @@ target_link_libraries(realsense PRIVATE
 target_compile_options(realsense PRIVATE 
     ${GSTREAMER_CFLAGS_OTHER}
     ${OPENCV_CFLAGS_OTHER}
+)
+
+
+
+add_executable(usbcam src/usbcam.cpp)
+
+target_include_directories(usbcam PRIVATE 
+    ${GST_INCLUDE_DIRS}
+)
+
+target_link_libraries(usbcam PRIVATE 
+    ${GST_LIBRARIES}
+)
+
+target_compile_options(usbcam PRIVATE 
+    ${GSTREAMER_CFLAGS_OTHER}
 )

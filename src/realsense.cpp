@@ -136,7 +136,9 @@ int main(int argc, char *argv[]) {
     std::thread color_thread(push_frame, std::ref(rs_pipeline), true, color_width, color_height, depth_scale);
     std::thread depth_thread(push_frame, std::ref(rs_pipeline), false, depth_width, depth_height, depth_scale);
 
-    std::cout << "[Realsense] Streaming..." << std::endl;
+    std::cout << "[Realsense] Streaming color at " 
+              << color_fps << " FPS " << "to " << ip_address << ":" << color_port << " and depth at " 
+              << depth_fps << " FPS " << "to " << ip_address << ":" << depth_port << std::endl;
 
     color_thread.join();
     depth_thread.join();
