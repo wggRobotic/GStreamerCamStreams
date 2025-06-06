@@ -19,15 +19,11 @@ void handle_signal(int signum) {
 GstElement *gst_pipeline = nullptr, *appsrc = nullptr;
 
 static const std::vector<std::string> labelMap = {
-    "person",        "bicycle",      "car",           "motorbike",     "aeroplane",   "bus",         "train",       "truck",        "boat",
-    "traffic light", "fire hydrant", "stop sign",     "parking meter", "bench",       "bird",        "cat",         "dog",          "horse",
-    "sheep",         "cow",          "elephant",      "bear",          "zebra",       "giraffe",     "backpack",    "umbrella",     "handbag",
-    "tie",           "suitcase",     "frisbee",       "skis",          "snowboard",   "sports ball", "kite",        "baseball bat", "baseball glove",
-    "skateboard",    "surfboard",    "tennis racket", "bottle",        "wine glass",  "cup",         "fork",        "knife",        "spoon",
-    "bowl",          "banana",       "apple",         "sandwich",      "orange",      "broccoli",    "carrot",      "hot dog",      "pizza",
-    "donut",         "cake",         "chair",         "sofa",          "pottedplant", "bed",         "diningtable", "toilet",       "tvmonitor",
-    "laptop",        "mouse",        "remote",        "keyboard",      "cell phone",  "microwave",   "oven",        "toaster",      "sink",
-    "refrigerator",  "book",         "clock",         "vase",          "scissors",    "teddy bear",  "hair drier",  "toothbrush"};
+    "blasting_agents", "corrosive", "dangerous_when_wet", "explosives",
+    "flammable_gas", "flammable_solid", "fuel_oil", "inhalation_hazard",
+    "non_flammable_gas", "organic_peroxide", "oxidizer",
+    "oxygen", "poison", "radioactive", "spontaneously_combustible"
+};
 
 static std::atomic<bool> syncNN{true};
 
@@ -48,11 +44,11 @@ int main(int argc, char** argv) {
 
     std::string pipeline_desc = 
         "appsrc name=src format=time "
-        "caps=video/x-raw,format=RGB,width=640,height=352,framerate=30/1 "
+        "caps=video/x-raw,format=RGB,width=640,height=640,framerate=35/1 "
         "! videoconvert ! x264enc speed-preset=ultrafast tune=zerolatency "
         "! rtph264pay config-interval=1 ! udpsink host=" + ip_address + " port=" + port + " sync=false";
 
-    std::string nnPath("../yolov8n_coco_640x352.blob");
+    std::string nnPath("../yolov8n_640_hazmat15.blob");
 
     // Print which blob we are using
     printf("[OAK] Using blob at path: %s\n", nnPath.c_str());
@@ -70,7 +66,7 @@ int main(int argc, char** argv) {
     nnOut->setStreamName("detections");
 
     // Properties
-    camRgb->setPreviewSize(640, 352);
+    camRgb->setPreviewSize(640, 640);
     camRgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
     camRgb->setInterleaved(false);
     camRgb->setColorOrder(dai::ColorCameraProperties::ColorOrder::BGR);
@@ -78,7 +74,7 @@ int main(int argc, char** argv) {
 
     // Network specific settings
     detectionNetwork->setConfidenceThreshold(0.5f);
-    detectionNetwork->setNumClasses(80);
+    detectionNetwork->setNumClasses(15);
     detectionNetwork->setCoordinateSize(4);
     detectionNetwork->setIouThreshold(0.5f);
     detectionNetwork->setBlobPath(nnPath);
@@ -111,7 +107,7 @@ int main(int argc, char** argv) {
 
     // Add bounding boxes and text to the frame and show it to the user
     auto displayFrame = [](std::string name, cv::Mat frame, std::vector<dai::ImgDetection>& detections) {
-        int frame_size = 3 * 640 * 352;
+        int frame_size = 3 * 640 * 640;
 
         auto color = cv::Scalar(255, 0, 0);
         // nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
